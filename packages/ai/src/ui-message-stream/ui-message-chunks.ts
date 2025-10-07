@@ -64,6 +64,11 @@ export const uiMessageChunkSchema = z.union([
     errorText: z.string(),
   }),
   z.strictObject({
+    type: z.literal('tool-approval-request'),
+    approvalId: z.string(),
+    toolCallId: z.string(),
+  }),
+  z.strictObject({
     type: z.literal('tool-output-available'),
     toolCallId: z.string(),
     output: z.unknown(),
@@ -79,9 +84,8 @@ export const uiMessageChunkSchema = z.union([
     dynamic: z.boolean().optional(),
   }),
   z.strictObject({
-    type: z.literal('reasoning'),
-    text: z.string(),
-    providerMetadata: providerMetadataSchema.optional(),
+    type: z.literal('tool-output-denied'),
+    toolCallId: z.string(),
   }),
   z.strictObject({
     type: z.literal('reasoning-start'),
@@ -98,9 +102,6 @@ export const uiMessageChunkSchema = z.union([
     type: z.literal('reasoning-end'),
     id: z.string(),
     providerMetadata: providerMetadataSchema.optional(),
-  }),
-  z.strictObject({
-    type: z.literal('reasoning-part-finish'),
   }),
   z.strictObject({
     type: z.literal('source-url'),
@@ -124,7 +125,11 @@ export const uiMessageChunkSchema = z.union([
     providerMetadata: providerMetadataSchema.optional(),
   }),
   z.strictObject({
-    type: z.string().startsWith('data-'),
+    type: z.custom<`data-${string}`>(
+      (value): value is `data-${string}` =>
+        typeof value === 'string' && value.startsWith('data-'),
+      { message: 'Type must start with "data-"' },
+    ),
     id: z.string().optional(),
     data: z.unknown(),
     transient: z.boolean().optional(),
@@ -222,6 +227,11 @@ export type UIMessageChunk<
       errorText: string;
     }
   | {
+      type: 'tool-approval-request';
+      approvalId: string;
+      toolCallId: string;
+    }
+  | {
       type: 'tool-output-available';
       toolCallId: string;
       output: unknown;
@@ -235,6 +245,10 @@ export type UIMessageChunk<
       errorText: string;
       providerExecuted?: boolean;
       dynamic?: boolean;
+    }
+  | {
+      type: 'tool-output-denied';
+      toolCallId: string;
     }
   | {
       type: 'tool-input-start';
@@ -267,6 +281,7 @@ export type UIMessageChunk<
       type: 'file';
       url: string;
       mediaType: string;
+      providerMetadata?: ProviderMetadata;
     }
   | DataUIMessageChunk<DATA_TYPES>
   | {

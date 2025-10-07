@@ -1,7 +1,7 @@
 import {
-  TranscriptionModelV2,
-  TranscriptionModelV2CallOptions,
-  TranscriptionModelV2CallWarning,
+  TranscriptionModelV3,
+  TranscriptionModelV3CallOptions,
+  TranscriptionModelV3CallWarning,
 } from '@ai-sdk/provider';
 import {
   combineHeaders,
@@ -21,7 +21,7 @@ import {
 } from './openai-transcription-options';
 
 export type OpenAITranscriptionCallOptions = Omit<
-  TranscriptionModelV2CallOptions,
+  TranscriptionModelV3CallOptions,
   'providerOptions'
 > & {
   providerOptions?: {
@@ -96,8 +96,8 @@ const languageMap = {
   welsh: 'cy',
 };
 
-export class OpenAITranscriptionModel implements TranscriptionModelV2 {
-  readonly specificationVersion = 'v2';
+export class OpenAITranscriptionModel implements TranscriptionModelV3 {
+  readonly specificationVersion = 'v3';
 
   get provider(): string {
     return this.config.provider;
@@ -113,7 +113,7 @@ export class OpenAITranscriptionModel implements TranscriptionModelV2 {
     mediaType,
     providerOptions,
   }: OpenAITranscriptionCallOptions) {
-    const warnings: TranscriptionModelV2CallWarning[] = [];
+    const warnings: TranscriptionModelV3CallWarning[] = [];
 
     // Parse provider options
     const openAIOptions = await parseProviderOptions({
@@ -157,7 +157,13 @@ export class OpenAITranscriptionModel implements TranscriptionModelV2 {
 
       for (const [key, value] of Object.entries(transcriptionModelOptions)) {
         if (value != null) {
-          formData.append(key, String(value));
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              formData.append(`${key}[]`, String(item));
+            }
+          } else {
+            formData.append(key, String(value));
+          }
         }
       }
     }
@@ -170,7 +176,7 @@ export class OpenAITranscriptionModel implements TranscriptionModelV2 {
 
   async doGenerate(
     options: OpenAITranscriptionCallOptions,
-  ): Promise<Awaited<ReturnType<TranscriptionModelV2['doGenerate']>>> {
+  ): Promise<Awaited<ReturnType<TranscriptionModelV3['doGenerate']>>> {
     const currentDate = this.config._internal?.currentDate?.() ?? new Date();
     const { formData, warnings } = await this.getArgs(options);
 
