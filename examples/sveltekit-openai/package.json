@@ -22,7 +22,7 @@
     "@eslint/compat": "^1.2.5",
     "@eslint/js": "^9.18.0",
     "@sveltejs/adapter-vercel": "^5.5.2",
-    "@sveltejs/kit": "^2.16.0",
+    "@sveltejs/kit": "^2.49.5",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "ai": "workspace:*",
     "autoprefixer": "^10.4.20",
